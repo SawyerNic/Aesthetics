@@ -21,7 +21,7 @@ const drawFillSquare = (x, y, width, height, color, angle=0) => {
     }
     console.log(sqrString);
 
-  return `<g>${sqrString}</g>`;
+  return `<g transform="rotate(${angle},${x},${y})">${sqrString}</g>`;
 }
 
 const drawRect = (x, y, width, height, color) => {
