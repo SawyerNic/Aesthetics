@@ -1,34 +1,78 @@
 const main = document.querySelector("#main");
 
-const canvasWidth = 500;
-const canvasHeight = 500;
+import FastNoiseLite from "./FastNoiseLite.js";
 
-const createSVG = (width, height) => {
-    const skewed = new Geometry(0,0,50,50,"black",0,1);
-    console.log(skewed);
-    let prect = new polyRect(0,0,50,50);
+let noise = new FastNoiseLite();
 
-    let grid = new drawGrid(0,0,10,10,50,50,10,10);
-  return `
-    <svg width="${width}" height="${height}">
-        <rect width="${width}"
-         height="${height}" 
-         fill="none" 
-         stroke="black" 
-        />
-        
-        ${prect.draw()}
-        ${grid.draw()}
-
-    </svg>
-  `;
-}
+let resultStr = ``;
+let color = "black";
+let opacity = 1;
+let x = 0;
+let y = 0;
 
 let objArr = [];
 
 function r() {
-    return Math.random()*4-2;
+    return Math.random() * 4 - 2;
 }
+
+/* Our new structure will consist of basic shapes that can be passed an 
+object that defines its appearence, position and size. There will also be
+separate transform functions that get passed the object and apply the 
+transforms to the object. 
+*/
+
+
+const canvasWidth = 500;
+const canvasHeight = 500;
+
+let noiseData = [];
+
+const createSVG = (width, height) => {
+
+    for (let j = 0; j < 50; j++) {
+
+        noiseData[j] = [];
+        for (let i = 0; i < 50; i++) {
+
+            noiseData[j][i] = noise.GetNoise(i*100, j*100);
+            console.log(noiseData[j][i]);
+            if(noiseData[j][i] > 0.89) break;
+
+            x = i * 10;
+            y = j * 10;
+
+            resultStr += `<g
+                transform="rotate(${r() * 360},${x},${y})",
+            >`;
+            line(x, y, x + 15, y + 15);
+            resultStr += `</g>`;
+
+
+            // noise work  
+            
+        }
+    }
+
+
+    return `
+    <svg width="${width}" height="${height}">
+        ${resultStr}
+    </svg>
+  `;
+}
+
+const line = (x1, y1, x2, y2) => {
+    resultStr += `<path 
+    fill="none"
+    stroke=${color}
+        d="
+        M ${x1} ${y1}
+        L ${x2} ${y2}"
+    />`;
+}
+
+
 
 class DesShape {
     constructor(geo, transforms, appearence) {
@@ -41,19 +85,6 @@ class DesShape {
     }
 }
 
-let vector = {
-    x: 0,
-    y: 0
-}
-
-let rotate = {
-    point: vector,
-    angle: 0,
-}
-
-let scale = {
-    mag: 1,
-}
 
 class Transforms {
     constructor(translate, rotate, scale) {
@@ -153,7 +184,7 @@ class Geometry {
 
 
 class drawGrid {
-    constructor(startX, startY, cols, rows, colWidth=0, rowHeight=0) {
+    constructor(startX, startY, cols, rows, colWidth = 0, rowHeight = 0) {
         this.startX = startX;
         this.startY = startY;
         this.cols = cols;
@@ -161,18 +192,18 @@ class drawGrid {
         this.colWidth = colWidth;
         this.rowHeight = rowHeight;
         this.drawStr = ``;
-        
+
     }
 
-    
+
 
     draw = () => {
-        for(let i = 0; i < this.cols; i++) {
-            for(let j = 0; j < this.rows; j++){
+        for (let i = 0; i < this.cols; i++) {
+            for (let j = 0; j < this.rows; j++) {
                 //let obj = new polySpiral(this.startX + (i*this.colWidth), this.startY + (j*this.rowHeight), this.colWidth)//
-                let obj = new polyRect(this.startX + (i*this.colWidth), this.startY + (j*this.rowHeight), this.colWidth, this.rowHeight);
+                let obj = new polyRect(this.startX + (i * this.colWidth), this.startY + (j * this.rowHeight), this.colWidth, this.rowHeight);
                 this.drawStr += obj.draw();
-                this.drawStr += polySpiral(this.startX + (i*this.colWidth), this.startY + (j*this.rowHeight), this.colWidth);
+                this.drawStr += polySpiral(this.startX + (i * this.colWidth), this.startY + (j * this.rowHeight), this.colWidth);
                 objArr.push(obj);
             }
         }
@@ -181,15 +212,15 @@ class drawGrid {
     }
 }
 
-const polySpiral = (x,y,size) => {
+const polySpiral = (x, y, size) => {
     let psStr = ``;
     let s = size;
 
-    let randInt = Math.floor(Math.random()*10);
-    for(let i = 0; i < randInt + randInt; i++){
-        let spir = new polyRect(x+(i*2.5), y+(i*2.5), s, s);
+    let randInt = Math.floor(Math.random() * 10);
+    for (let i = 0; i < randInt + randInt; i++) {
+        let spir = new polyRect(x + (i * 2.5), y + (i * 2.5), s, s);
         psStr += spir.draw();
-        s -= (size)/(10);
+        s -= (size) / (10);
     }
 
     return `<g>${psStr}</g>`;
@@ -221,32 +252,32 @@ class polyRect {
 }
 
 
-const drawRow = (startX, startY, squareFun, spacing, color, angle=0, opacity=1) => {
+const drawRow = (startX, startY, squareFun, spacing, color, angle = 0, opacity = 1) => {
     let sqrString = ``;
     let unitX = startX;
-    
-    for(let i = 0; i < 10 ; i++) {
+
+    for (let i = 0; i < 10; i++) {
         sqrString += squareFun(unitX, startY, 50, 50, color, angle, opacity);
         unitX += spacing;
     }
-  return `<g>${sqrString}</g>`;
+    return `<g>${sqrString}</g>`;
 }
 
 const drawSquareGrid = (columns, square, transforms, randMag, spacing) => {
-    for(let i = 0; i < columns; i++) {
-        drawSquareRow(i*spacing, 0, square, square, "black", 0, 1);
+    for (let i = 0; i < columns; i++) {
+        drawSquareRow(i * spacing, 0, square, square, "black", 0, 1);
     }
 }
 
-const drawFillSquare = (x, y, width, height, color, angle=0, opacity=1) => {
+const drawFillSquare = (x, y, width, height, color, angle = 0, opacity = 1) => {
 
     let sqrString = ``;
-    
-    for(let i = width; i > 0; i--) {
-        sqrString += drawRect(x-(i/2), y-(i/2), i, i, color, angle);
+
+    for (let i = width; i > 0; i--) {
+        sqrString += drawRect(x - (i / 2), y - (i / 2), i, i, color, angle);
     }
 
-  return `<g transform="rotate(${angle},${x},${y})", opacity="${opacity}">${sqrString}</g>`;
+    return `<g transform="rotate(${angle},${x},${y})", opacity="${opacity}">${sqrString}</g>`;
 };
 
 
@@ -267,33 +298,33 @@ const drawRect = (x, y, width, height, color) => {
 
 
 
-const drawCircle = (x,y,r) => {
+const drawCircle = (x, y, r) => {
     return `
     <path 
         fill="none"
         stroke="red"
         d="
-        M ${x+r} ${y}
-        C ${x+r}, ${y+r*1.4}, ${x-r}, ${y+r*1.4}, ${x-r}, ${y}
-        C ${x-r}, ${y-r*1.4}, ${x+r}, ${y-r*1.4}, ${x+r}, ${y}"
+        M ${x + r} ${y}
+        C ${x + r}, ${y + r * 1.4}, ${x - r}, ${y + r * 1.4}, ${x - r}, ${y}
+        C ${x - r}, ${y - r * 1.4}, ${x + r}, ${y - r * 1.4}, ${x + r}, ${y}"
         stroke="black"
     />`;
 }
 
-const drawEllipse = (x,y,r,h) => {
+const drawEllipse = (x, y, r, h) => {
     return `
     <path 
         fill="none"
         stroke="red"
         d="
-        M ${x+r} ${y}
-        C ${x+r}, ${y+r+h}, ${x-r}, ${y+r+h}, ${x-r}, ${y}
-        C ${x-r}, ${y-(r+h)}, ${x+r}, ${y-(r+h)}, ${x+r}, ${y}"
+        M ${x + r} ${y}
+        C ${x + r}, ${y + r + h}, ${x - r}, ${y + r + h}, ${x - r}, ${y}
+        C ${x - r}, ${y - (r + h)}, ${x + r}, ${y - (r + h)}, ${x + r}, ${y}"
         stroke="black"
     />`;
 };
 
-const drawLine = (x1,y1,x2,y2) => {
+const drawLine = (x1, y1, x2, y2) => {
     return `
     <path 
         fill="none"
@@ -301,19 +332,6 @@ const drawLine = (x1,y1,x2,y2) => {
         d="
         M ${x1} ${y1}
         L ${x2} ${y2}"
-    />`;
-}
-
-const drawPolygon = (x,y,x1,y1,x2,y2) => {
-    return `
-    <path 
-        fill="none"
-        stroke="red"
-        d="
-        M ${x}, ${y}
-        L ${x1}, ${y1}
-        L ${x2}, ${y2}
-        z"
     />`;
 }
 
