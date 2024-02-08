@@ -2,7 +2,7 @@ const main = document.querySelector("#main");
 
 import FastNoiseLite from "./FastNoiseLite.js";
 
-let noise = new FastNoiseLite();
+let noise = new FastNoiseLite(0);
 
 let resultStr = ``;
 let color = "black";
@@ -34,10 +34,12 @@ const createSVG = (width, height) => {
 
         noiseData[j] = [];
         for (let i = 0; i < 50; i++) {
-
-            noiseData[j][i] = noise.GetNoise(i*100, j*100);
+            
+            noise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
+            noise.SetFrequency(15)
+            noiseData[j][i] = noise.GetNoise(j*Math.random()*100, j*Math.random()*100);
             console.log(noiseData[j][i]);
-            if(noiseData[j][i] > 0.89) break;
+            if(noiseData[j][i] > .93) break;
 
             x = i * 10;
             y = j * 10;
