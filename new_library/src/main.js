@@ -63,7 +63,11 @@ const createSVG = (width, height) => {
 }
 
 const grid = (startX, startY, cols, rows, colWidth, rowHeight) => {
-    
+    for(let i = 0; i < cols; i++) {
+        for(let j = 0; j < rows; j++) {
+            
+        }
+    }
 }
 
 const line = (x1, y1, x2, y2) => {
